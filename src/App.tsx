@@ -28,7 +28,7 @@ interface ResultsViewProps {
  */
 function ResultsListView({ results }: ResultsViewProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       {results.map((item) => {
         const isEligible = item.status === 'ELIGIBLE';
         return (
@@ -103,7 +103,7 @@ function ResultsCardView({ results }: ResultsViewProps) {
             key={item.roleId}
             className={`rounded-xl border p-4 flex flex-col justify-between transition-all ${
               isEligible
-                ? 'bg-emerald-50/40 dark:bg-emerald-950/25 border-emerald-200 dark:border-emerald-800/60 shadow-xs'
+                ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/60 shadow-xs'
                 : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xs'
             }`}
           >
@@ -153,23 +153,6 @@ function ResultsCardView({ results }: ResultsViewProps) {
 }
 
 export default function App() {
-  // In-memory theme state: initializes from system preference, manually overrideable
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
-  });
-
-  // Sync dark class on root document element
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDark]);
-
   // Controlled form input state
   const [profile, setProfile] = useState<RawProfileInput>(BUILT_IN_PROFILE);
 
@@ -180,6 +163,52 @@ export default function App() {
 
   // Presentation view mode toggle: defaults to 'list'
   const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
+
+  // Collapsible role items state (set of expanded role IDs)
+  const [expandedRoles, setExpandedRoles] = useState<Set<string>>(new Set());
+
+  // In-memory Dark Mode state with system preference fallback
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  // Synchronize 'dark' class on HTML document root
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    setIsDark((prev) => !prev);
+  };
+
+  const toggleRole = (roleId: string) => {
+    setExpandedRoles((prev) => {
+      const next = new Set(prev);
+      if (next.has(roleId)) {
+        next.delete(roleId);
+      } else {
+        next.add(roleId);
+      }
+      return next;
+    });
+  };
+
+  const allRolesExpanded = expandedRoles.size === FIXED_ROLES.length;
+
+  const toggleAllRoles = () => {
+    if (allRolesExpanded) {
+      setExpandedRoles(new Set());
+    } else {
+      setExpandedRoles(new Set(FIXED_ROLES.map((r) => r.id)));
+    }
+  };
 
   /**
    * Evaluates the given profile using pure functions from Phase 1.
@@ -216,12 +245,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-16 transition-colors duration-200">
-      {/* Top Navigation Bar */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-10 shadow-xs transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-4 transition-colors duration-200">
+      {/* Fixed Sticky Top Navigation Bar */}
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur sticky top-0 z-20 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 shrink-0">
+            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
               Role<span className="text-indigo-600 dark:text-indigo-400">Fit</span>
             </span>
             <span className="text-xs uppercase tracking-wider font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
@@ -229,32 +258,52 @@ export default function App() {
             </span>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-slate-600 dark:text-slate-400 hidden sm:inline">
+          {/* In-page section jump links */}
+          <nav aria-label="Section Navigation" className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-lg text-xs font-medium">
+            <a
+              href="#profile-section"
+              className="px-2.5 sm:px-3 py-1 rounded text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-all"
+            >
+              Profile
+            </a>
+            <a
+              href="#roles-section"
+              className="px-2.5 sm:px-3 py-1 rounded text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-all"
+            >
+              Roles
+            </a>
+            <a
+              href="#results-section"
+              className="px-2.5 sm:px-3 py-1 rounded text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-700 transition-all"
+            >
+              Results
+            </a>
+          </nav>
+
+          <div className="flex items-center space-x-3 shrink-0">
+            <div className="hidden lg:block text-xs text-slate-500 dark:text-slate-400">
               Career Fair Eligibility Shortlist
             </div>
-            
+
             {/* Theme Toggle Button */}
             <button
               type="button"
-              onClick={() => setIsDark(!isDark)}
-              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors cursor-pointer"
+              onClick={toggleTheme}
+              aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+              className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
               {isDark ? (
-                <>
-                  <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                  <span>Light</span>
-                </>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
               ) : (
-                <>
-                  <svg className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                  <span>Dark</span>
-                </>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
               )}
             </button>
           </div>
@@ -262,17 +311,20 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           
-          {/* Left Column: Student Profile & Fixed Requirements (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
+          {/* Left Column: Student Profile & Compact Roles Reference (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
             
             {/* 1. Student Profile Form Panel */}
-            <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs transition-colors duration-200">
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Student Profile</h2>
-                <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Editable Inputs</span>
+            <section
+              id="profile-section"
+              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs relative"
+            >
+              <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Student Profile</h2>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Editable Inputs</span>
               </div>
 
               <form
@@ -280,7 +332,7 @@ export default function App() {
                   e.preventDefault();
                   handleEvaluate();
                 }}
-                className="space-y-4"
+                className="space-y-3"
               >
                 <div>
                   <label htmlFor="branch" className="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">
@@ -292,11 +344,11 @@ export default function App() {
                     value={profile.branch}
                     onChange={(e) => setProfile({ ...profile, branch: e.target.value })}
                     placeholder="e.g. CSE, IT, ECE"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2.5">
                   <div>
                     <label htmlFor="cgpa" className="block text-xs font-semibold uppercase text-slate-600 dark:text-slate-400 mb-1">
                       CGPA (0.0 - 10.0)
@@ -307,7 +359,7 @@ export default function App() {
                       value={profile.cgpa}
                       onChange={(e) => setProfile({ ...profile, cgpa: e.target.value })}
                       placeholder="e.g. 8.1"
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                      className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                     />
                   </div>
 
@@ -321,7 +373,7 @@ export default function App() {
                       value={profile.graduationYear}
                       onChange={(e) => setProfile({ ...profile, graduationYear: e.target.value })}
                       placeholder="e.g. 2027"
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                      className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -336,7 +388,7 @@ export default function App() {
                     value={profile.activeBacklogs}
                     onChange={(e) => setProfile({ ...profile, activeBacklogs: e.target.value })}
                     placeholder="e.g. 0"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors"
                   />
                 </div>
 
@@ -346,37 +398,34 @@ export default function App() {
                   </label>
                   <textarea
                     id="skills"
-                    rows={3}
+                    rows={2}
                     value={profile.skills}
                     onChange={(e) => setProfile({ ...profile, skills: e.target.value })}
                     placeholder="e.g. Git, Python, SQL"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 resize-none"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50/50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 resize-none transition-colors"
                   />
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                    Trimmed, case-insensitive, and deduplicated upon evaluation.
-                  </p>
                 </div>
 
-                {/* Actions Toolbar */}
-                <div className="pt-2 flex flex-wrap gap-2">
+                {/* Sticky Actions Toolbar */}
+                <div className="sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur pt-3 pb-0.5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2 z-10">
                   <button
                     type="button"
                     onClick={() => handleEvaluate()}
-                    className="flex-1 min-w-[120px] px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium text-sm rounded-lg shadow-xs transition-colors cursor-pointer"
+                    className="flex-1 min-w-[110px] px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg shadow-xs transition-colors cursor-pointer"
                   >
                     Evaluate
                   </button>
                   <button
                     type="button"
                     onClick={handleSample}
-                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:active:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium text-sm rounded-lg transition-colors cursor-pointer"
+                    className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 text-slate-700 dark:text-slate-200 font-medium text-xs rounded-lg transition-colors cursor-pointer"
                   >
                     Sample
                   </button>
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="px-4 py-2.5 border border-slate-300 hover:bg-slate-100 active:bg-slate-200 dark:border-slate-700 dark:hover:bg-slate-800 dark:active:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-sm rounded-lg transition-colors cursor-pointer"
+                    className="px-3 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 text-slate-700 dark:text-slate-300 font-medium text-xs rounded-lg transition-colors cursor-pointer"
                   >
                     Reset
                   </button>
@@ -384,60 +433,125 @@ export default function App() {
               </form>
             </section>
 
-            {/* 2. Fixed Role Requirements Reference Panel */}
-            <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs transition-colors duration-200">
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Career Fair Roles Reference</h2>
-                <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">5 Fixed Requisitions</span>
+            {/* 2. Compact & Collapsible Role Requirements Reference Panel */}
+            <section
+              id="roles-section"
+              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs"
+            >
+              <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Career Fair Roles Reference</h2>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">5 Fixed Requisitions</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleAllRoles}
+                  className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/50 transition-colors cursor-pointer"
+                >
+                  {allRolesExpanded ? 'Collapse All' : 'Expand All'}
+                </button>
               </div>
               
-              <div className="space-y-3">
-                {FIXED_ROLES.map((role) => (
-                  <div
-                    key={role.id}
-                    className="p-3 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors"
-                  >
-                    <div className="flex items-baseline justify-between mb-1">
-                      <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400">{role.id}</span>
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Min CGPA: {role.minCgpa.toFixed(1)}</span>
+              {/* Compact Accordion Role Rows */}
+              <div className="space-y-1.5">
+                {FIXED_ROLES.map((role) => {
+                  const isExpanded = expandedRoles.has(role.id);
+                  return (
+                    <div
+                      key={role.id}
+                      className={`rounded-lg border transition-all ${
+                        isExpanded
+                          ? 'border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/20 dark:bg-indigo-950/20'
+                          : 'border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/50 dark:hover:bg-slate-800/70'
+                      }`}
+                    >
+                      {/* Compact summary row (always visible) */}
+                      <button
+                        type="button"
+                        onClick={() => toggleRole(role.id)}
+                        className="w-full text-left px-3 py-2 flex items-center justify-between gap-2 cursor-pointer select-none"
+                      >
+                        <div className="flex items-center space-x-2 min-w-0">
+                          <span className="text-[11px] font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded shrink-0">
+                            {role.id}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
+                            {role.title}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                            Min {role.minCgpa.toFixed(1)}
+                          </span>
+                          <svg
+                            className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 ${
+                              isExpanded ? 'rotate-180 text-indigo-600 dark:text-indigo-400' : ''
+                            }`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </button>
+
+                      {/* Expanded criteria details */}
+                      {isExpanded && (
+                        <div className="px-3 pb-3 pt-1 border-t border-indigo-100 dark:border-indigo-900/40 space-y-2 text-xs">
+                          <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[11px] text-slate-600 dark:text-slate-300">
+                            <div>
+                              <span className="text-slate-500 dark:text-slate-400">Branches:</span>{' '}
+                              <span className="font-medium">{role.allowedBranches.join(', ')}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 dark:text-slate-400">Years:</span>{' '}
+                              <span className="font-medium">{role.allowedGraduationYears.join(', ')}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 dark:text-slate-400">Max Backlogs:</span>{' '}
+                              <span className="font-medium">{role.maxActiveBacklogs}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 dark:text-slate-400">Cutoff:</span>{' '}
+                              <span className="font-medium">{role.minCgpa.toFixed(1)} CGPA</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">
+                              Required Skills
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {role.requiredSkills.map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="px-1.5 py-0.5 bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-[11px] font-medium"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">{role.title}</div>
-                    <div className="grid grid-cols-2 gap-y-1 text-xs text-slate-600 dark:text-slate-400 mb-2">
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Branches:</span> {role.allowedBranches.join(', ')}
-                      </div>
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Years:</span> {role.allowedGraduationYears.join(', ')}
-                      </div>
-                      <div>
-                        <span className="text-slate-500 dark:text-slate-400">Max Backlogs:</span> {role.maxActiveBacklogs}
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {role.requiredSkills.map((skill) => (
-                        <span
-                          key={skill}
-                          className="px-1.5 py-0.5 bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded text-[11px] font-medium"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
           </div>
 
           {/* Right Column: Validation Banner, Summary Counts & Results Panel (7 cols) */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-4">
             
             {/* Validation Message Area */}
             {validationError && (
               <div
                 role="alert"
-                className="bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-500 p-4 rounded-r-lg shadow-xs transition-colors duration-200"
+                className="bg-rose-50 dark:bg-rose-950/40 border-l-4 border-rose-500 p-4 rounded-r-lg shadow-xs"
               >
                 <div className="flex items-start">
                   <div className="ml-1">
@@ -453,26 +567,26 @@ export default function App() {
             )}
 
             {/* Counts Summary Header */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between transition-colors duration-200">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Eligibility Status Summary</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Automated multi-criteria evaluation outcome</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Eligibility Status Summary</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Automated multi-criteria evaluation outcome</p>
               </div>
 
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2.5">
                 {counts ? (
                   <>
-                    <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm font-semibold">
+                    <div className="flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm font-bold">
                       <span>{counts.eligible}</span>
-                      <span className="text-xs font-normal text-emerald-600 dark:text-emerald-400">Eligible</span>
+                      <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Eligible</span>
                     </div>
-                    <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-lg text-sm font-semibold">
+                    <div className="flex items-center space-x-1.5 px-3 py-1 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-lg text-sm font-bold">
                       <span>{counts.ineligible}</span>
-                      <span className="text-xs font-normal text-rose-600 dark:text-rose-400">Ineligible</span>
+                      <span className="text-xs font-medium text-rose-600 dark:text-rose-400">Ineligible</span>
                     </div>
                   </>
                 ) : (
-                  <div className="text-sm font-medium text-slate-600 dark:text-slate-400 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                  <div className="text-xs font-medium text-slate-500 dark:text-slate-400 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
                     — No evaluation active
                   </div>
                 )}
@@ -480,10 +594,13 @@ export default function App() {
             </div>
 
             {/* Role Results Panel (with View Mode Toggle) */}
-            <section className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs transition-colors duration-200">
+            <section
+              id="results-section"
+              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs"
+            >
               <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center space-x-3">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Evaluation Results</h2>
+                <div className="flex items-center space-x-2.5">
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">Evaluation Results</h2>
                   {results && (
                     <span className="text-xs text-slate-600 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
                       {results.length} Roles
@@ -498,8 +615,8 @@ export default function App() {
                     onClick={() => setViewMode('list')}
                     className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${
                       viewMode === 'list'
-                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-semibold'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     List
@@ -509,8 +626,8 @@ export default function App() {
                     onClick={() => setViewMode('card')}
                     className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all cursor-pointer ${
                       viewMode === 'card'
-                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-semibold'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     Cards
@@ -519,11 +636,20 @@ export default function App() {
               </div>
 
               {!results ? (
-                <div className="py-12 text-center">
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                /* Compact Rebalanced Empty State */
+                <div className="py-8 px-4 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-800/20">
+                  <div className="w-10 h-10 mx-auto mb-2.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                    {validationError ? 'Input Correction Required' : 'Ready to Screen Candidate'}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
                     {validationError
-                      ? 'Results cleared due to invalid profile input.'
-                      : 'No evaluation has run yet. Click "Evaluate" to screen the candidate or "Sample" to load defaults.'}
+                      ? 'Results cleared due to invalid profile input. Correct the highlighted errors to re-evaluate.'
+                      : 'Click "Evaluate" to screen against all 5 roles, or click "Sample" to test the built-in profile.'}
                   </p>
                 </div>
               ) : viewMode === 'card' ? (
