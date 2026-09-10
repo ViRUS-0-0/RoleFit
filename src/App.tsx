@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FIXED_ROLES,
   validateProfile,
@@ -18,6 +18,15 @@ const BUILT_IN_PROFILE: RawProfileInput = {
   graduationYear: '2027',
   activeBacklogs: '1',
   skills: 'Git, Python, SQL',
+};
+
+// Clean initial empty profile for clearing form state
+const EMPTY_PROFILE: RawProfileInput = {
+  branch: '',
+  cgpa: '',
+  graduationYear: '',
+  activeBacklogs: '',
+  skills: '',
 };
 
 interface ResultsViewProps {
@@ -184,6 +193,20 @@ export default function App() {
     return false;
   });
 
+  // Transient notification message for user actions (Sample, Reset)
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showFeedback = (message: string) => {
+    setActionFeedback(message);
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+    }
+    feedbackTimeoutRef.current = setTimeout(() => {
+      setActionFeedback(null);
+    }, 3000);
+  };
+
   // Synchronize 'dark' class on HTML document root
   useEffect(() => {
     if (isDark) {
@@ -255,23 +278,50 @@ export default function App() {
   };
 
   /**
-   * Restores built-in default profile and triggers immediate evaluation.
+   * Loads built-in default profile values into form fields without evaluating,
+   * clears any validation errors, resets active evaluation results,
+   * displays confirmation feedback, and scrolls to the profile section.
    */
   const handleSample = () => {
-    setProfile(BUILT_IN_PROFILE);
-    handleEvaluate(BUILT_IN_PROFILE, true);
+    setProfile({ ...BUILT_IN_PROFILE });
+    setValidationError(null);
+    setResults(null);
+    setCounts(null);
+    showFeedback('Sample defaults loaded into form');
+    setTimeout(() => {
+      document.getElementById('profile-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   };
 
   /**
-   * Reset is functionally identical to Sample per Phase 0 documented assumptions.
+   * Resets form fields to empty, clears screening results,
+   * clears validation errors, and returns view to profile input.
    */
   const handleReset = () => {
-    setProfile(BUILT_IN_PROFILE);
-    handleEvaluate(BUILT_IN_PROFILE, true);
+    setProfile({ ...EMPTY_PROFILE });
+    setValidationError(null);
+    setResults(null);
+    setCounts(null);
+    showFeedback('Form and screening results reset');
+    setTimeout(() => {
+      document.getElementById('profile-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+      {/* Transient Action Feedback Toast */}
+      {actionFeedback && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-20 right-4 sm:right-8 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 shadow-xl border border-slate-700/60 dark:border-slate-200/60 text-xs font-semibold backdrop-blur-md transition-all"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 dark:bg-emerald-600 animate-pulse" />
+          <span>{actionFeedback}</span>
+        </div>
+      )}
+
       {/* 1. Fixed Sticky Top Navigation Bar */}
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md sticky top-0 z-30 shadow-xs">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
