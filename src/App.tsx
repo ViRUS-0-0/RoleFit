@@ -43,7 +43,7 @@ function ResultsListView({ results }: ResultsViewProps) {
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs font-mono font-bold text-slate-600">
+                  <span className="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
                     {item.roleId}
                   </span>
                   <h3 className="text-sm font-semibold text-slate-900">
@@ -74,7 +74,7 @@ function ResultsListView({ results }: ResultsViewProps) {
                   {item.failureReasons.map((reason, idx) => (
                     <li
                       key={idx}
-                      className="text-xs text-rose-600 flex items-start space-x-1.5 font-mono"
+                      className="text-xs text-rose-700 flex items-start space-x-1.5 font-mono"
                     >
                       <span className="text-rose-400 select-none">•</span>
                       <span>{reason}</span>
