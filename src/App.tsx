@@ -76,17 +76,12 @@ function ResultsListView({ results }: ResultsViewProps) {
                     return (
                       <li
                         key={idx}
-                        className="text-xs sm:text-sm text-rose-700 dark:text-rose-300 flex items-start space-x-2.5"
+                        className="text-xs sm:text-sm flex items-start space-x-2.5"
                       >
                         <span className="text-rose-500 font-bold select-none leading-5">•</span>
-                        <div className="flex-1 leading-5">
-                          <p className="font-medium text-slate-800 dark:text-slate-200">
-                            {formattedMessage}
-                          </p>
-                          <span className="mt-0.5 inline-block font-mono text-[10px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-900/60">
-                            {reason}
-                          </span>
-                        </div>
+                        <span className="font-medium text-slate-800 dark:text-slate-200 leading-5">
+                          {formattedMessage}
+                        </span>
                       </li>
                     );
                   })}
@@ -150,14 +145,9 @@ function ResultsCardView({ results }: ResultsViewProps) {
                     return (
                       <div
                         key={idx}
-                        className="text-xs p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-100 dark:border-rose-900/60 flex flex-col gap-1 leading-relaxed"
+                        className="text-xs p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-slate-800 dark:text-slate-200 border border-rose-100 dark:border-rose-900/60 leading-relaxed font-medium"
                       >
-                        <span className="font-medium text-slate-800 dark:text-slate-200">
-                          {formattedMessage}
-                        </span>
-                        <span className="text-[10px] font-mono text-rose-600 dark:text-rose-400">
-                          {reason}
-                        </span>
+                        {formattedMessage}
                       </div>
                     );
                   })}
