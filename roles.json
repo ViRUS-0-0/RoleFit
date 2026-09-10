@@ -1,0 +1,47 @@
+[
+  {
+    "id": "CF01",
+    "title": "Data Operations Intern",
+    "allowedBranches": ["CSE", "IT"],
+    "minCgpa": 7.5,
+    "allowedGraduationYears": [2027],
+    "maxActiveBacklogs": 1,
+    "requiredSkills": ["Python", "SQL"]
+  },
+  {
+    "id": "CF02",
+    "title": "QA Automation Intern",
+    "allowedBranches": ["CSE", "ECE", "IT"],
+    "minCgpa": 7.0,
+    "allowedGraduationYears": [2027, 2028],
+    "maxActiveBacklogs": 1,
+    "requiredSkills": ["Git"]
+  },
+  {
+    "id": "CF03",
+    "title": "Embedded Systems Intern",
+    "allowedBranches": ["ECE", "EEE"],
+    "minCgpa": 7.5,
+    "allowedGraduationYears": [2027],
+    "maxActiveBacklogs": 1,
+    "requiredSkills": ["Git"]
+  },
+  {
+    "id": "CF04",
+    "title": "Machine Learning Intern",
+    "allowedBranches": ["CSE", "IT"],
+    "minCgpa": 8.5,
+    "allowedGraduationYears": [2027],
+    "maxActiveBacklogs": 1,
+    "requiredSkills": ["Python"]
+  },
+  {
+    "id": "CF05",
+    "title": "Platform Engineering Intern",
+    "allowedBranches": ["CSE", "ECE"],
+    "minCgpa": 7.0,
+    "allowedGraduationYears": [2026],
+    "maxActiveBacklogs": 0,
+    "requiredSkills": ["Docker", "Git"]
+  }
+]
