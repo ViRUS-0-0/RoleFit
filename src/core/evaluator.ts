@@ -354,3 +354,36 @@ export function getCounts(results: EvaluationResult[]): EligibilityCounts {
   }
   return { eligible, ineligible };
 }
+
+/**
+ * Formats a raw evaluation failure reason code into a clear, candidate-facing
+ * sentence from the user's perspective, optionally enriched with role requirements.
+ */
+export function formatFailureReason(reason: string, role?: Role): string {
+  if (reason.startsWith('MISSING_SKILL:')) {
+    const skill = reason.replace('MISSING_SKILL:', '').trim();
+    return `You are missing the required skill: ${skill}`;
+  }
+
+  switch (reason) {
+    case 'BRANCH_NOT_ALLOWED':
+      return role && role.allowedBranches?.length
+        ? `Your branch is not eligible for this role (allowed: ${role.allowedBranches.join(', ')})`
+        : 'Your branch is not eligible for this role';
+    case 'CGPA_BELOW_MINIMUM':
+      return role && typeof role.minCgpa === 'number'
+        ? `Your CGPA is below the minimum required cutoff of ${role.minCgpa.toFixed(1)}`
+        : 'Your CGPA is below the minimum required cutoff';
+    case 'GRADUATION_YEAR_NOT_ALLOWED':
+      return role && role.allowedGraduationYears?.length
+        ? `Your graduation year is not eligible for this role (allowed batches: ${role.allowedGraduationYears.join(', ')})`
+        : 'Your graduation year is not eligible for this role';
+    case 'TOO_MANY_ACTIVE_BACKLOGS':
+      return role && typeof role.maxActiveBacklogs === 'number'
+        ? `Your active backlogs exceed the maximum permitted limit (${role.maxActiveBacklogs} allowed)`
+        : 'Your active backlogs exceed the maximum permitted limit for this role';
+    default:
+      return reason;
+  }
+}
+
