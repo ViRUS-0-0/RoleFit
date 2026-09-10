@@ -267,18 +267,18 @@ export default function App() {
   };
 
   /**
-   * Restores built-in default profile, clears validation errors,
-   * immediately evaluates the profile, and shows confirmation feedback.
+   * Loads built-in default profile values into form fields without evaluating,
+   * clears any validation errors, resets active evaluation results,
+   * displays confirmation feedback, and scrolls to the profile section.
    */
   const handleSample = () => {
     setProfile({ ...BUILT_IN_PROFILE });
     setValidationError(null);
-    const evalResults = evaluateAll(BUILT_IN_PROFILE);
-    setResults(evalResults);
-    setCounts(getCounts(evalResults));
-    showFeedback('Sample defaults loaded & evaluated');
+    setResults(null);
+    setCounts(null);
+    showFeedback('Sample defaults loaded into form');
     setTimeout(() => {
-      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('profile-section')?.scrollIntoView({ behavior: 'smooth' });
     }, 50);
   };
 
