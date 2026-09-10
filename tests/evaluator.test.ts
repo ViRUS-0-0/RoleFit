@@ -7,6 +7,7 @@ import {
   evaluateRole,
   evaluateAll,
   getCounts,
+  formatFailureReason,
   type Role,
   type RawProfileInput,
   type StudentProfile,
@@ -604,3 +605,54 @@ describe('8. Integration-style pure-function chain', () => {
     assert.deepEqual(counts, { eligible: 3, ineligible: 2 });
   });
 });
+
+// ============================================================================
+// 9. formatFailureReason Suite (User-Friendly Formatted Sentences)
+// ============================================================================
+describe('9. formatFailureReason — user-friendly failure sentence generation', () => {
+  const sampleRole: Role = {
+    roleId: 'CF03',
+    roleTitle: 'Embedded Systems Intern',
+    allowedBranches: ['ECE', 'EEE'],
+    minCgpa: 7.5,
+    allowedGraduationYears: [2027],
+    maxActiveBacklogs: 1,
+    requiredSkills: ['Git'],
+  };
+
+  test('formats BRANCH_NOT_ALLOWED with role context', () => {
+    const formatted = formatFailureReason('BRANCH_NOT_ALLOWED', sampleRole);
+    assert.equal(formatted, 'Your branch is not eligible for this role (allowed: ECE, EEE)');
+  });
+
+  test('formats BRANCH_NOT_ALLOWED without role fallback', () => {
+    const formatted = formatFailureReason('BRANCH_NOT_ALLOWED');
+    assert.equal(formatted, 'Your branch is not eligible for this role');
+  });
+
+  test('formats CGPA_BELOW_MINIMUM with role context', () => {
+    const formatted = formatFailureReason('CGPA_BELOW_MINIMUM', sampleRole);
+    assert.equal(formatted, 'Your CGPA is below the minimum required cutoff of 7.5');
+  });
+
+  test('formats CGPA_BELOW_MINIMUM without role fallback', () => {
+    const formatted = formatFailureReason('CGPA_BELOW_MINIMUM');
+    assert.equal(formatted, 'Your CGPA is below the minimum required cutoff');
+  });
+
+  test('formats GRADUATION_YEAR_NOT_ALLOWED with role context', () => {
+    const formatted = formatFailureReason('GRADUATION_YEAR_NOT_ALLOWED', sampleRole);
+    assert.equal(formatted, 'Your graduation year is not eligible for this role (allowed batches: 2027)');
+  });
+
+  test('formats TOO_MANY_ACTIVE_BACKLOGS with role context', () => {
+    const formatted = formatFailureReason('TOO_MANY_ACTIVE_BACKLOGS', sampleRole);
+    assert.equal(formatted, 'Your active backlogs exceed the maximum permitted limit (1 allowed)');
+  });
+
+  test('formats MISSING_SKILL with skill name', () => {
+    const formatted = formatFailureReason('MISSING_SKILL: Docker', sampleRole);
+    assert.equal(formatted, 'You are missing the required skill: Docker');
+  });
+});
+

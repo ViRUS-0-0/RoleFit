@@ -4,6 +4,7 @@ import {
   validateProfile,
   evaluateAll,
   getCounts,
+  formatFailureReason,
   type RawProfileInput,
   type EvaluationResult,
   type EligibilityCounts,
@@ -68,16 +69,27 @@ function ResultsListView({ results }: ResultsViewProps) {
                 <h4 className="text-xs font-bold tracking-wider text-rose-700 dark:text-rose-400 uppercase mb-2">
                   Unmet Criteria ({item.failureReasons.length})
                 </h4>
-                <ul className="space-y-1.5">
-                  {item.failureReasons.map((reason, idx) => (
-                    <li
-                      key={idx}
-                      className="text-xs sm:text-sm text-rose-700 dark:text-rose-300 flex items-start space-x-2 font-mono"
-                    >
-                      <span className="text-rose-400 dark:text-rose-500 select-none">•</span>
-                      <span>{reason}</span>
-                    </li>
-                  ))}
+                <ul className="space-y-2">
+                  {item.failureReasons.map((reason, idx) => {
+                    const role = FIXED_ROLES.find((r) => r.id === item.roleId);
+                    const formattedMessage = formatFailureReason(reason, role);
+                    return (
+                      <li
+                        key={idx}
+                        className="text-xs sm:text-sm text-rose-700 dark:text-rose-300 flex items-start space-x-2.5"
+                      >
+                        <span className="text-rose-500 font-bold select-none leading-5">•</span>
+                        <div className="flex-1 leading-5">
+                          <p className="font-medium text-slate-800 dark:text-slate-200">
+                            {formattedMessage}
+                          </p>
+                          <span className="mt-0.5 inline-block font-mono text-[10px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-900/60">
+                            {reason}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
@@ -131,15 +143,24 @@ function ResultsCardView({ results }: ResultsViewProps) {
                 <div className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-2">
                   Failed Requirements ({item.failureReasons.length})
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  {item.failureReasons.map((reason, idx) => (
-                    <span
-                      key={idx}
-                      className="text-xs font-mono text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/60 px-2.5 py-1 rounded break-all"
-                    >
-                      {reason}
-                    </span>
-                  ))}
+                <div className="flex flex-col gap-2">
+                  {item.failureReasons.map((reason, idx) => {
+                    const role = FIXED_ROLES.find((r) => r.id === item.roleId);
+                    const formattedMessage = formatFailureReason(reason, role);
+                    return (
+                      <div
+                        key={idx}
+                        className="text-xs p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-100 dark:border-rose-900/60 flex flex-col gap-1 leading-relaxed"
+                      >
+                        <span className="font-medium text-slate-800 dark:text-slate-200">
+                          {formattedMessage}
+                        </span>
+                        <span className="text-[10px] font-mono text-rose-600 dark:text-rose-400">
+                          {reason}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
